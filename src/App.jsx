@@ -993,9 +993,13 @@ const PainelAdmin = ({ user, onLogout }) => {
   const carregar = useCallback(async () => {
     setLoading(true);
     try {
-      const [ps, us] = await Promise.all([
-        sb.get("pesquisas", "order=created_at.desc"),
-        sb.get("usuarios", "order=created_at.asc"),
+      const timeout = new Promise((_,rej) => setTimeout(()=>rej(new Error("timeout")), 5000));
+      const [ps, us] = await Promise.race([
+        Promise.all([
+          sb.get("pesquisas", "order=created_at.desc"),
+          sb.get("usuarios", "order=created_at.asc"),
+        ]),
+        timeout.then(()=>{ throw new Error("timeout"); })
       ]);
       setPesquisas(ps.map(p=>({
         ...p,
